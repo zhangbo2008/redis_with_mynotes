@@ -1,0 +1,23 @@
+{
+    "files.associations": {
+        "cstdio": "c",
+        "stdlib.h": "c",
+        "zmalloc.h": "c",
+        "config.h": "c",
+        "stdio.h": "c",
+        "unistd.h": "c",
+        "cstdlib": "c",
+        "endianconv.h": "c",
+        "stdint.h": "c",
+        "util.h": "c",
+        "fmacros.h": "c",
+        "testhelp.h": "c",
+        "limits.h": "c",
+        "alloca.h": "c",
+        "redisassert.h": "c",
+        "ziplist.h": "c",
+        "redis.h": "c",
+        "lua.h": "c",
+        "signal.h": "c"
+    }
+}
