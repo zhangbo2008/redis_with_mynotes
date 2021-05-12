@@ -57,7 +57,7 @@ void memrev16(void *p) {
 
 /* Toggle the 32 bit unsigned integer pointed by *p from little endian to
  * big endian */
-void memrev32(void *p) {// 不管小端还是打算都是 顺序逆一下即可. 因为输入32位,
+void memrev32(void *p) {// 不管小端还是打算都是 顺序逆一下即可. 因为输入32位,1
     unsigned char *x = p, t;
 
     t = x[0];
