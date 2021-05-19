@@ -57,13 +57,13 @@ void memrev16(void *p) {
 
 /* Toggle the 32 bit unsigned integer pointed by *p from little endian to
  * big endian */
-void memrev32(void *p) {// 不管小端还是打算都是 顺序逆一下即可. 因为输入32位,1
+void memrev32(void *p) {// 不管小端还是打算都是 顺序逆一下即可. 因为输入32位,所以p指向一个4字节的. 用char来拆分字节. 每一个char是一个字节,t是中间变量.  大印度小印度是格列夫游记里面的说法,2种记录策略.
     unsigned char *x = p, t;
 
     t = x[0];
     x[0] = x[3];
-    x[3] = t;
-    t = x[1];
+    x[3] = t;//首尾互换
+    t = x[1];// 1,2索引互换. 就完事了.没啥技巧.
     x[1] = x[2];
     x[2] = t;
 }

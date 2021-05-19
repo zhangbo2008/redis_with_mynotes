@@ -45,22 +45,23 @@ uint64_t intrev64(uint64_t v);
 
 /* variants of the function doing the actual convertion only if the target
  * host is big endian */
-#if (BYTE_ORDER == LITTLE_ENDIAN)
+#if (BYTE_ORDER == LITTLE_ENDIAN)// 如果本身就是小印度的就不用转化了,
 #define memrev16ifbe(p)
 #define memrev32ifbe(p)
 #define memrev64ifbe(p)
 #define intrev16ifbe(v) (v)
 #define intrev32ifbe(v) (v)
 #define intrev64ifbe(v) (v)
-#else
+#else//否则转化一下即可.
 #define memrev16ifbe(p) memrev16(p)
 #define memrev32ifbe(p) memrev32(p)
 #define memrev64ifbe(p) memrev64(p)
 #define intrev16ifbe(v) intrev16(v)
-#define intrev32ifbe(v) intrev32(v)
+#define intrev32ifbe(v) intrev32(v)    
+
 #define intrev64ifbe(v) intrev64(v)
 #endif
-
+//起名含义. int 表示4字节, rev表示revolution表示转化.宏定义里面注释就是绿色的没事,不用管,不会破坏代码的!
 /* The functions htonu64() and ntohu64() convert the specified value to
  * network byte ordering and back. In big endian systems they are no-ops. */
 #if (BYTE_ORDER == BIG_ENDIAN)
