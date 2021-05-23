@@ -3933,8 +3933,18 @@ void redisSetProcTitle(char *title) {
 int main(int argc, char **argv) {
 
 printf("这个代码是启动的redis.c");
-//#include "ziplist.h"
-    main2();
+#include "ae.h"
+    test_ae();
+
+
+
+
+
+
+
+
+
+    
     struct timeval tv;
 
     /* We need to initialize our libraries, and the server configuration. */

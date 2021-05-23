@@ -46,11 +46,17 @@
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
+
+
+    //为了支持不同的平台，redis用相同的接口封装了系统提供的多路复用层代码。接口共提供如下函数：aeApiCreate\aeApiFree\aeApiAddEvent\aeApiDelEvent\aeApiPoll\aeApiName函数，以及一个struct aeApiState
+    //通过包含不同的头文件，选择不同的底层实现
+    //按如下顺序，效率递减： epoll > kqueue > select
 #ifdef HAVE_EVPORT
 #include "ae_evport.c"
 #else
     #ifdef HAVE_EPOLL
-    #include "ae_epoll.c"
+    #include "ae_epoll.c"            //linux系统调用的就是这个ae_epoll.c
+
     #else
         #ifdef HAVE_KQUEUE
         #include "ae_kqueue.c"
@@ -60,9 +66,28 @@
     #endif
 #endif
 
+
+
+
+int test_ae(){
+   // int a=3;
+    printf("%d",HAVE_EPOLL);         //直接在这里面打印即可, ide自己都会计算现在系统是否定义了这个变量.
+    //经过测试纸后我么我们知道我们使用的函数是ae_epoll.c 和ae_select.c
+
+return 0;
+
+}
+
+
+
+
+
+
+
+
 /*
  * 初始化事件处理器状态
- */
+ *///初始化函数，创建事件循环，函数内部alloc一个结构，用于表示事件状态，供后续其他函数作为参数使用
 aeEventLoop *aeCreateEventLoop(int setsize) {
     aeEventLoop *eventLoop;
     int i;
@@ -105,6 +130,23 @@ err:
     }
     return NULL;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Return the current set size. */
 // 返回当前事件槽大小

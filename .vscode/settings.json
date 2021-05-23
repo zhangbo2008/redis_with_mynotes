@@ -18,6 +18,12 @@
         "ziplist.h": "c",
         "redis.h": "c",
         "lua.h": "c",
-        "signal.h": "c"
+        "signal.h": "c",
+        "math.h": "c",
+        "cluster.h": "c",
+        "bio.h": "c",
+        "ae.h": "c",
+        "assert.h": "c",
+        "epoll.h": "c"
     }
 }

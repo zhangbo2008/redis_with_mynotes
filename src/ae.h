@@ -189,6 +189,13 @@ typedef struct aeEventLoop {
 } aeEventLoop;
 
 /* Prototypes */
+
+
+
+
+
+
+
 aeEventLoop *aeCreateEventLoop(int setsize);
 void aeDeleteEventLoop(aeEventLoop *eventLoop);
 void aeStop(aeEventLoop *eventLoop);
@@ -207,5 +214,6 @@ char *aeGetApiName(void);
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep);
 int aeGetSetSize(aeEventLoop *eventLoop);
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize);
-
+int test_ae(void);
 #endif
+
