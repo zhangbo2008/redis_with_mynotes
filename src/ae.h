@@ -83,7 +83,7 @@ struct aeEventLoop;
 typedef void aeFileProc(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 typedef int aeTimeProc(struct aeEventLoop *eventLoop, long long id, void *clientData);
 typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientData);
-typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
+typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);  //定义一个新类型  是一个函数, 入参aeEventLoop 出餐是void
 
 /* File event structure
  *
@@ -146,7 +146,7 @@ typedef struct aeFiredEvent {
     // 事件类型掩码，
     // 值可以是 AE_READABLE 或 AE_WRITABLE
     // 或者是两者的或
-    int mask;
+    int mask;    //表示检测的事件
 
 } aeFiredEvent;
 
@@ -181,7 +181,7 @@ typedef struct aeEventLoop {
     int stop;
 
     // 多路复用库的私有数据
-    void *apidata; /* This is used for polling API specific data */
+    void *apidata; /* This is used for polling API specific data */        //真正的数据都在这里面. 也就是epoll的所有结构体在这里面.
 
     // 在处理事件前要执行的函数
     aeBeforeSleepProc *beforesleep;

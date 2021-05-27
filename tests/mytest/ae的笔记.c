@@ -20,6 +20,15 @@
      #endif
  #endif
      //初始化函数，创建事件循环，函数内部alloc一个结构，用于表示事件状态，供后续其他函数作为参数使
+
+
+
+
+
+
+
+
+
  aeEventLoop *aeCreateEventLoop(void) {
      aeEventLoop *eventLoop;
      int i;
@@ -41,6 +50,16 @@
          eventLoop->events[i].mask = AE_NONE;
      return eventLoop;
  }
+
+
+
+
+
+
+
+
+
+
      //底层实现执行释放操作后，释放state的内存
  void aeDeleteEventLoop(aeEventLoop *eventLoop) {
      aeApiFree(eventLoop);
@@ -50,6 +69,13 @@
  void aeStop(aeEventLoop *eventLoop) {
      eventLoop->stop = 1;
  }
+
+
+
+
+
+
+
      //创建文件fd事件，加入事件循环监控列表，使得后续epoll\select时将会测试这个文件描述符的可读性可写性）
  int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
          aeFileProc *proc, void *clientData)
@@ -67,6 +93,15 @@
          eventLoop->maxfd = fd;
      return AE_OK;
  }
+
+
+
+
+
+
+
+
+ 
  
  void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
  {

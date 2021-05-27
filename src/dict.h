@@ -141,7 +141,7 @@ typedef struct dict {
     void *privdata;
 
     // 哈希表
-    dictht ht[2];
+    dictht ht[2];           // 每一个字典包含2个哈希表!!!!!!!!
 
     // rehash 索引
     // 当 rehash 不在进行时，值为 -1
@@ -249,7 +249,7 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 // 返回字典的已有节点数量
 #define dictSize(d) ((d)->ht[0].used+(d)->ht[1].used)
 // 查看字典是否正在 rehash
-#define dictIsRehashing(ht) ((ht)->rehashidx != -1)
+#define dictIsRehashing(ht) ((ht)->rehashidx != -1)   //如果等于-1表示没有在rehash,  等于0表示正在rehash
 
 /* API */
 dict *dictCreate(dictType *type, void *privDataPtr);

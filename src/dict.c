@@ -79,8 +79,18 @@ static int _dictInit(dict *ht, dictType *type, void *privDataPtr);
 
 /* -------------------------- hash functions -------------------------------- */
 
+
+
+
+
+
+
+
+
+
+
 /* Thomas Wang's 32 bit Mix Function */
-unsigned int dictIntHashFunction(unsigned int key)
+unsigned int dictIntHashFunction(unsigned int key)            // 首先我们看32位整数的哈希算法.
 {
     key += ~(key << 15);
     key ^=  (key >> 10);
@@ -91,7 +101,7 @@ unsigned int dictIntHashFunction(unsigned int key)
     return key;
 }
 
-/* Identity hash function for integer keys */
+/* Identity hash function for integer keys */               //恒等哈希
 unsigned int dictIdentityHashFunction(unsigned int key)
 {
     return key;
@@ -107,6 +117,19 @@ uint32_t dictGetHashFunctionSeed(void) {
     return dict_hash_function_seed;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* MurmurHash2, by Austin Appleby
  * Note - This code makes a few assumptions about how your machine behaves -
  * 1. We can read a 4-byte value from any address without crashing
@@ -118,7 +141,7 @@ uint32_t dictGetHashFunctionSeed(void) {
  * 2. It will not produce the same results on little-endian and big-endian
  *    machines.
  */
-unsigned int dictGenHashFunction(const void *key, int len) {
+unsigned int dictGenHashFunction(const void *key, int len) {  //len是key的长度
     /* 'm' and 'r' are mixing constants generated offline.
      They're not really 'magic', they just happen to work well.  */
     uint32_t seed = dict_hash_function_seed;
@@ -129,10 +152,10 @@ unsigned int dictGenHashFunction(const void *key, int len) {
     uint32_t h = seed ^ len;
 
     /* Mix 4 bytes at a time into the hash */
-    const unsigned char *data = (const unsigned char *)key;
+    const unsigned char *data = (const unsigned char *)key;          //每次我们混淆4个字节.
 
     while(len >= 4) {
-        uint32_t k = *(uint32_t*)data;
+        uint32_t k = *(uint32_t*)data; //前4 字节
 
         k *= m;
         k ^= k >> r;
@@ -145,7 +168,7 @@ unsigned int dictGenHashFunction(const void *key, int len) {
         len -= 4;
     }
 
-    /* Handle the last few bytes of the input array  */
+    /* Handle the last few bytes of the input array  */  //len剩余只有0,1,2,3
     switch(len) {
     case 3: h ^= data[2] << 16;
     case 2: h ^= data[1] << 8;
@@ -161,6 +184,10 @@ unsigned int dictGenHashFunction(const void *key, int len) {
     return (unsigned int)h;
 }
 
+
+
+
+// 再来一个大小写不敏感的哈希.
 /* And a case insensitive hash function (based on djb hash) */
 unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
     unsigned int hash = (unsigned int)dict_hash_function_seed;
@@ -169,6 +196,11 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
         hash = ((hash << 5) + hash) + (tolower(*buf++)); /* hash * 33 + c */
     return hash;
 }
+
+
+
+
+
 
 /* ----------------------------- API implementation ------------------------- */
 
@@ -181,13 +213,23 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
  *
  * T = O(1)
  */
-static void _dictReset(dictht *ht)
+static void _dictReset(dictht *ht)   //dictht 是哈希表. 输入一个哈希表. 然后初始化里面的数据.
 {
     ht->table = NULL;
     ht->size = 0;
     ht->sizemask = 0;
     ht->used = 0;
 }
+
+
+
+
+
+
+
+
+
+
 
 /* Create a new hash table */
 /*
@@ -198,12 +240,24 @@ static void _dictReset(dictht *ht)
 dict *dictCreate(dictType *type,
         void *privDataPtr)
 {
-    dict *d = zmalloc(sizeof(*d));
+    dict *d = zmalloc(sizeof(*d));       // 这个是结构体malloc的另一种写法, 这里面写sizeof *d 跟sizeof dict都一样. 只要能计算类型就够了.
 
     _dictInit(d,type,privDataPtr);
 
     return d;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Initialize the hash table */
 /*
@@ -234,6 +288,16 @@ int _dictInit(dict *d, dictType *type,
     return DICT_OK;
 }
 
+
+
+
+
+
+
+
+
+
+
 /* Resize the table to the minimal size that contains all the elements,
  * but with the invariant of a USED/BUCKETS ratio near to <= 1 */
 /*
@@ -263,6 +327,19 @@ int dictResize(dict *d)
     return dictExpand(d, minimal);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Expand or create the hash table */
 /*
  * 创建一个新的哈希表，并根据字典的情况，选择以下其中一个动作来进行：
@@ -279,6 +356,7 @@ int dictResize(dict *d)
  */
 int dictExpand(dict *d, unsigned long size)
 {
+// 建立一个空表.
     // 新哈希表
     dictht n; /* the new hash table */
 
@@ -301,6 +379,10 @@ int dictExpand(dict *d, unsigned long size)
     n.table = zcalloc(realsize*sizeof(dictEntry*));
     n.used = 0;
 
+
+
+// 进行处理,
+//第一种情况,第一个哈希表如果是空,那么我们就把新建的表n用做第一个哈希表.
     /* Is this the first initialization? If so it's not really a rehashing
      * we just set the first hash table so that it can accept keys. */
     // 如果 0 号哈希表为空，那么这是一次初始化：
@@ -310,6 +392,10 @@ int dictExpand(dict *d, unsigned long size)
         return DICT_OK;
     }
 
+
+
+
+//第二种情况, 第一个有了,那么我们就把新表扔第二个哈希里面即可.
     /* Prepare a second hash table for incremental rehashing */
     // 如果 0 号哈希表非空，那么这是一次 rehash ：
     // 程序将新哈希表设置为 1 号哈希表，
@@ -317,7 +403,7 @@ int dictExpand(dict *d, unsigned long size)
     d->ht[1] = n;
     d->rehashidx = 0;
     return DICT_OK;
-
+//下面是注释废话,跳过.
     /* 顺带一提，上面的代码可以重构成以下形式：
     
     if (d->ht[0].table == NULL) {
@@ -334,6 +420,19 @@ int dictExpand(dict *d, unsigned long size)
     */
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+// 重哈希算法.
 /* Performs N steps of incremental rehashing. Returns 1 if there are still
  * keys to move from the old to the new hash table, otherwise 0 is returned.
  *
@@ -353,8 +452,8 @@ int dictExpand(dict *d, unsigned long size)
  */
 int dictRehash(dict *d, int n) {
 
-    // 只可以在 rehash 进行中时执行
-    if (!dictIsRehashing(d)) return 0;
+    // 只可以在 rehash 进行中时我们才进行后续处理, 否则直接return 0.
+    if (!dictIsRehashing(d)) return 0;   // c语言里面true false 对应的是 非0, 和0.
 
     // 进行 N 步迁移
     // T = O(N)
@@ -366,7 +465,7 @@ int dictRehash(dict *d, int n) {
         // T = O(1)
         if (d->ht[0].used == 0) {
             // 释放 0 号哈希表
-            zfree(d->ht[0].table);
+            zfree(d->ht[0].table);  //析构这个东西是因为他本质是一个结构体, 是在堆上开辟的,只能手动free才行!!!!!!!这就是c语言麻烦的地方,要自己注意. java python都不用自己维护堆.
             // 将原来的 1 号哈希表设置为新的 0 号哈希表
             d->ht[0] = d->ht[1];
             // 重置旧的 1 号哈希表
@@ -419,6 +518,24 @@ int dictRehash(dict *d, int n) {
 
     return 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * 返回以毫秒为单位的 UNIX 时间戳
