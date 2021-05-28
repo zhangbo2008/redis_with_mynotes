@@ -1735,7 +1735,7 @@ unsigned long dictScan(dict *d,
     if (dictSize(d) == 0) return 0;
 
     // 迭代只有一个哈希表的字典
-    if (!dictIsRehashing(d)) {
+    if (!dictIsRehashing(d)) {  // 只跑0 哈希表.
 
         // 指向哈希表
         t0 = &(d->ht[0]);
@@ -1865,6 +1865,15 @@ static int _dictExpandIfNeeded(dict *d)
     return DICT_OK;
 }
 
+
+
+
+
+
+
+
+
+
 /* Our hash table capability is a power of two */
 /*
  * 计算第一个大于等于 size 的 2 的 N 次方，用作哈希表的值
@@ -1882,6 +1891,14 @@ static unsigned long _dictNextPower(unsigned long size)
         i *= 2;
     }
 }
+
+
+
+
+
+
+
+
 
 /* Returns the index of a free slot that can be populated with
  * a hash entry for the given 'key'.
@@ -1936,6 +1953,20 @@ static int _dictKeyIndex(dict *d, const void *key)
     // 返回索引值
     return idx;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * 清空字典上的所有哈希表节点，并重置字典属性
