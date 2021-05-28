@@ -1643,17 +1643,21 @@ static unsigned long rev(unsigned long v) {
  * the old bucket: for example let's say that we already iterated with
  * a 4 bit cursor 1100, since the mask is 1111 (hash table size = 16).
  *
- * 当对哈希表进行扩展时，元素可能会从一个槽移动到另一个槽，
- * 举个例子，假设我们刚好迭代至 4 位游标 1100 ，
- * 而哈希表的 mask 为 1111 （哈希表的大小为 16 ）。
+table变大了,那么元素数量会变大2的倍数.
  *
  * If the hash table will be resized to 64 elements, and the new mask will
  * be 111111, the new buckets that you obtain substituting in ??1100
  * either 0 or 1, can be targeted only by keys that we already visited
  * when scanning the bucket 1100 in the smaller hash table.
  *
- * 如果这时哈希表将大小改为 64 ，那么哈希表的 mask 将变为 111111 ，
+ 从16元素变到64个元素时候,那么2的6次幂=64 所以mask就是 1000000-1= 111111
  *
+因为我们跑迭代器, 所以我们的索引是从0开始遍历的.当遍历的同事, table也同时变大.处理这个情况.
+
+
+
+
+
  * By iterating the higher bits first, because of the inverted counter, the
  * cursor does not need to restart if the table size gets bigger, and will
  * just continue iterating with cursors that don't have '1100' at the end,
@@ -1717,9 +1721,10 @@ static unsigned long rev(unsigned long v) {
 
 
 
-
-
-
+//        https://blog.csdn.net/gqtcgq/article/details/50533336         看这个,希望能看懂. 超级难的算法
+//  https://www.cnblogs.com/evenleee/p/11832693.html         也参考这个.
+// 传入 d 字典,   v是一个索引. fn是打印函数. 打印这个索引的全部数据,     返回的v表示迭代完之后的下一个索引.
+//因为运行的时候, 字典会进行rehash, 所以最后返回的v 可能会跟传入的v+1不一样.
 
 
 unsigned long dictScan(dict *d,
@@ -1783,6 +1788,8 @@ unsigned long dictScan(dict *d,
         // Iterate over indices in larger table             // 迭代大表中的桶
         // that are the expansion of the index pointed to   // 这些桶被索引的 expansion 所指向
         // by the cursor in the smaller table               //
+
+        //============下面这部分代码是在rehash 的时候会触发的.
         do {
             /* Emit entries at cursor */
             // 指向桶，并迭代桶中的所有节点
@@ -1796,11 +1803,11 @@ unsigned long dictScan(dict *d,
             v = (((v | m0) + 1) & ~m0) | (v & m0);
 
             /* Continue while bits covered by mask difference is non-zero */
-        } while (v & (m0 ^ m1));
+        } while (v & (m0 ^ m1));       //如果v跟mask diff 有交集就继续算.因为这时候说明v 需要算第二个捅. //也就是说大桶和小桶里面内容不同.
     }
 
     /* Set unmasked bits so incrementing the reversed cursor
-     * operates on the masked bits of the smaller table */
+     * operates on the masked bits of the smaller table */     // 下面这4行很难啊.
     v |= ~m0;
 
     /* Increment the reverse cursor */
