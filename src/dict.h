@@ -74,7 +74,8 @@ typedef struct dictEntry {
     } v;
 
     // 指向下个哈希表节点，形成链表
-    struct dictEntry *next;
+    struct dictEntry *next;//  整体的结构就是 dict是一个数组,然后每个元素都是一个链表!!!!!!!!!!!!
+    //链式哈希的实现.说白了就是.
 
 } dictEntry;
 
@@ -115,7 +116,7 @@ typedef struct dictType {
 typedef struct dictht {
     
     // 哈希表数组
-    dictEntry **table;
+    dictEntry **table;   // 一个数组, 里面每一个元素都是指针, 指针的内容是dicEntry
 
     // 哈希表大小
     unsigned long size;
@@ -148,7 +149,7 @@ typedef struct dict {
     int rehashidx; /* rehashing not in progress if rehashidx == -1 */
 
     // 目前正在运行的安全迭代器的数量
-    int iterators; /* number of iterators currently running */
+    int iterators; /* number of iterators currently running */        //只记录安全的迭代器.........
 
 } dict;
 
