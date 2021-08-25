@@ -3934,7 +3934,30 @@ int main(int argc, char **argv) {
 
 printf("这个代码是启动的redis.c");
 #include "ae.h"
+#include "dict.h"
+dictType a2;
+
     test_ae();
+
+//下面这段代码用来理解结构体等号赋值的值拷贝特性.
+struct node {
+    long a;
+    int  b;
+    char c;
+    long array[3];
+    int * p;
+}; 
+int aaa=3;
+    struct node n1;
+    n1.p=&aaa;
+    n1.a = 1;
+    n1.b = 2;
+    n1.c = 3;
+    n1.array[0] = 10;
+    n1.array[1] = 11;
+    n1.array[2] = 12;
+    struct node n2 = n1;
+ 
 
 
 

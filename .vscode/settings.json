@@ -24,6 +24,7 @@
         "bio.h": "c",
         "ae.h": "c",
         "assert.h": "c",
-        "epoll.h": "c"
+        "epoll.h": "c",
+        "dict.h": "c"
     }
 }

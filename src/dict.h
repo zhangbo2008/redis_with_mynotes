@@ -83,7 +83,7 @@ typedef struct dictEntry {
 /*
  * 字典类型特定函数
  */
-typedef struct dictType {
+typedef struct dictType {// 函数的本质是指针, 所以这个结构体里面存的是一堆指针.这些指针当做属性用.
 
     // 计算哈希值的函数
     unsigned int (*hashFunction)(const void *key);
@@ -116,7 +116,7 @@ typedef struct dictType {
 typedef struct dictht {
     
     // 哈希表数组
-    dictEntry **table;   // 一个数组, 里面每一个元素都是指针, 指针的内容是dicEntry
+    dictEntry **table;   // 一个数组, 里面每一个元素都是指针, 指针指向的内容是dicEntry
 
     // 哈希表大小
     unsigned long size;
@@ -200,6 +200,9 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
     if ((d)->type->valDestructor) \
         (d)->type->valDestructor((d)->privdata, (entry)->v.val)
 
+
+
+
 // 设置给定字典节点的值
 #define dictSetVal(d, entry, _val_) do { \
     if ((d)->type->valDup) \
@@ -227,7 +230,7 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
         entry->key = (d)->type->keyDup((d)->privdata, _key_); \
     else \
         entry->key = (_key_); \
-} while(0)
+} while(0)   // 如果d中存在keyDup函数,那么我们就使用这个函数
 
 // 比对两个键
 #define dictCompareKeys(d, key1, key2) \
@@ -250,7 +253,7 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 // 返回字典的已有节点数量
 #define dictSize(d) ((d)->ht[0].used+(d)->ht[1].used)
 // 查看字典是否正在 rehash
-#define dictIsRehashing(ht) ((ht)->rehashidx != -1)   //如果等于-1表示没有在rehash,  等于0表示正在rehash
+#define dictIsRehashing(ht) ((ht)->rehashidx != -1)   //如果等于-1表示没有在rehash,  等于其他表示正在rehash
 
 /* API */
 dict *dictCreate(dictType *type, void *privDataPtr);

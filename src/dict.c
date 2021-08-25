@@ -47,6 +47,30 @@
 #include "zmalloc.h"
 #include "redisassert.h"
 
+
+
+
+
+
+
+/* // 首先我们需要对这个.c中的数据结构做一个把握.
+最外层的概念是字典. 叫dict
+字典中有2个哈希表叫dichht  用来维护数据.  
+哈希表里面是一个链表.链表中的每一个节点叫dictEntry. 区分好这3个概念.
+特别是区分好字典和哈希表的区别. 不然后面容易弄混.
+
+另外这个哈希表是python中字典的概念, 
+给一个key,经过哈希之后,存入哈希表里面.存入的是key和value拼成的entry
+ */
+
+
+
+
+
+
+
+
+
 /* Using dictEnableResize() / dictDisableResize() we make possible to
  * enable/disable resizing of the hash table as needed. This is very important
  * for Redis, as we use copy-on-write and don't want to move too much memory
@@ -142,6 +166,9 @@ uint32_t dictGetHashFunctionSeed(void) {
  *    machines.
  */
 unsigned int dictGenHashFunction(const void *key, int len) {  //len是key的长度
+// c语言里面传参数都是传指针, 如果字符串用数组传就太慢了. 所以传字符串需要一个首地址和他的长度.
+
+
     /* 'm' and 'r' are mixing constants generated offline.
      They're not really 'magic', they just happen to work well.  */
     uint32_t seed = dict_hash_function_seed;
@@ -211,7 +238,7 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
  *
  * p.s. 上面的英文注释已经过期
  *
- * T = O(1)
+ * T = O(1)             处理的是哈希表的重置.也就是哈希表里面数据清空. 传入的是哈希表的地址.然后把这个地址里面的东西初始化即可.
  */
 static void _dictReset(dictht *ht)   //dictht 是哈希表. 输入一个哈希表. 然后初始化里面的数据.
 {
@@ -261,7 +288,7 @@ dict *dictCreate(dictType *type,
 
 /* Initialize the hash table */
 /*
- * 初始化哈希表
+ * 初始化我们的字典. 虽然这里面写的hash table. 但是他实际上值得是字典的概念.
  *
  * T = O(1)
  */
@@ -367,7 +394,7 @@ int dictExpand(dict *d, unsigned long size)
     /* the size is invalid if it is smaller than the number of
      * elements already inside the hash table */
     // 不能在字典正在 rehash 时进行
-    // size 的值也不能小于 0 号哈希表的当前已使用节点
+    // size 的值也不能小于 0 号哈希表的当前已使用节点,否则装不下现有数据.
     if (dictIsRehashing(d) || d->ht[0].used > size)
         return DICT_ERR;
 
@@ -401,23 +428,9 @@ int dictExpand(dict *d, unsigned long size)
     // 程序将新哈希表设置为 1 号哈希表，
     // 并将字典的 rehash 标识打开，让程序可以开始对字典进行 rehash
     d->ht[1] = n;
-    d->rehashidx = 0;
-    return DICT_OK;
-//下面是注释废话,跳过.
-    /* 顺带一提，上面的代码可以重构成以下形式：
-    
-    if (d->ht[0].table == NULL) {
-        // 初始化
-        d->ht[0] = n;
-    } else {
-        // rehash 
-        d->ht[1] = n;
-        d->rehashidx = 0;
-    }
-
+    d->rehashidx = 0; // 等于0表示可以进行rehash
     return DICT_OK;
 
-    */
 }
 
 
@@ -432,24 +445,7 @@ int dictExpand(dict *d, unsigned long size)
 
 
 
-// 重哈希算法.
-/* Performs N steps of incremental rehashing. Returns 1 if there are still
- * keys to move from the old to the new hash table, otherwise 0 is returned.
- *
- * 执行 N 步渐进式 rehash 。
- *
- * 返回 1 表示仍有键需要从 0 号哈希表移动到 1 号哈希表，
- * 返回 0 则表示所有键都已经迁移完毕。
- *
- * Note that a rehashing step consists in moving a bucket (that may have more
- * than one key as we use chaining) from the old to the new hash table.
- *
- * 注意，每步 rehash 都是以一个哈希表索引（桶）作为单位的，
- * 一个桶里可能会有多个节点，
- * 被 rehash 的桶里的所有节点都会被移动到新哈希表。
- *
- * T = O(N)
- */
+// 重哈希算法.   就是从0哈希表吧数据重新哈希一遍放到1哈希表里面.同时0里面对应的数据变成null
 int dictRehash(dict *d, int n) {// 跑n次个节点. refresh.
 
     //   dictIsRehashing  表示这个dict是否可以进行重哈希. 如果返回false, 那么这个函数就无法触发,直接返回0了.
@@ -457,19 +453,19 @@ int dictRehash(dict *d, int n) {// 跑n次个节点. refresh.
 
     // 进行 N 步迁移
     // T = O(N)
-    while(n--) {
+    while(n--) { // 表示跑n个0里面的索引. 也就是从rehashidx 到rehashidx+n-1进行搬迁数据.
         dictEntry *de, *nextde;
 
         /* Check if we already rehashed the whole table... */
         // 如果 0 号哈希表为空，那么表示 rehash 执行完毕
         // T = O(1)
-        if (d->ht[0].used == 0) {
+        if (d->ht[0].used == 0) {// used存储的是里面节点的数量.
             // 释放 0 号哈希表
             zfree(d->ht[0].table);  //析构这个东西是因为他本质是一个结构体, 是在堆上开辟的,只能手动free才行!!!!!!!这就是c语言麻烦的地方,要自己注意. java python都不用自己维护堆.
             // 将原来的 1 号哈希表设置为新的 0 号哈希表
-            d->ht[0] = d->ht[1];
+            d->ht[0] = d->ht[1]; //注意结构体等号的值拷贝特性.
             // 重置旧的 1 号哈希表
-            _dictReset(&d->ht[1]);
+            _dictReset(&d->ht[1]); // 所以这地方操作1号哈希表时候,不会干扰0号.
             // 关闭 rehash 标识
             d->rehashidx = -1;           //设置之后这个dict就不会被rehash了.
             // 返回 0 ，向调用者表示 rehash 已经完成
@@ -497,10 +493,10 @@ int dictRehash(dict *d, int n) {// 跑n次个节点. refresh.
 
             /* Get the index in the new hash table */
             // 计算新哈希表的哈希值，以及节点插入的索引位置-------重新计算哈希值. 使用d 里面设置好的哈希函数来对key进行哈希
-            h = dictHashKey(d, de->key) & d->ht[1].sizemask;          //得到的值跟sizemask取交,不让得到的值过大. 得到的值始终小鱼d->ht[1].sizemask.       返回的h是一个int.
+            h = dictHashKey(d, de->key) & d->ht[1].sizemask;          //得到的值跟sizemask取交,不让得到的值过大. 得到的值始终小鱼d->ht[1].sizemask.       返回的h是一个int. sizemask 二进制永远都是全1的.
 
             // 插入节点到新哈希表
-            de->next = d->ht[1].table[h]; //数组的每一个元素是一个指针.所以可以直接赋值给 de->next. //就的东西赋值给de->next
+            de->next = d->ht[1].table[h];   //就的东西连接到next上.
             d->ht[1].table[h] = de;    //然后de放入这个位置.
 
             // 更新计数器
@@ -685,21 +681,25 @@ dictEntry *dictAddRaw(dict *d, void *key)          //d中加入key的节点
 
     // 如果条件允许的话，进行单步 rehash
     // T = O(1)
-    if (dictIsRehashing(d)) _dictRehashStep(d); //为什么要rehash一下呢?
+    if (dictIsRehashing(d)) _dictRehashStep(d); //为什么要rehash一下呢?假设之前运行的代码rehash还没跑完,这个代码就会进行等待.保证下面逻辑正确.
+
+
 
     /* Get the index of the new element, or -1 if
      * the element already exists. */
     // 计算键在哈希表中的索引值
-    // 如果值为 -1 ，那么表示键已经存在
+    // 如果值为 -1 ，那么表示键已经存在=====注意这个.-1表示已经存在.
     // T = O(N)
     if ((index = _dictKeyIndex(d, key)) == -1)
         return NULL;
+
+
 
     // T = O(1)
     /* Allocate the memory and store the new entry */
     // 如果字典正在 rehash ，那么将新键添加到 1 号哈希表
     // 否则，将新键添加到 0 号哈希表
-    ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
+    ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];// 返回哈希表的地址.
     // 为新节点分配空间
     entry = zmalloc(sizeof(*entry));
     // 将新节点插入到链表表头
@@ -708,11 +708,12 @@ dictEntry *dictAddRaw(dict *d, void *key)          //d中加入key的节点
     // 更新哈希表已使用节点数量
     ht->used++;
 
+
+
     /* Set the hash entry fields. */
     // 设置新节点的键
     // T = O(1)
     dictSetKey(d, entry, key);
-
     return entry;
 }
 
@@ -762,16 +763,12 @@ int dictReplace(dict *d, void *key, void *val)
      * to do that in this order, as the value may just be exactly the same
      * as the previous one. In this context, think to reference counting,
      * you want to increment (set), and then decrement (free), and not the
-     * reverse. 
+     * reverse.  引用计数都需要先加再减.保证逻辑正确.防止有其他线程还使用他.最后减能不正不乱析构.
      * 
-     * 需要理解一下这个地方换val为什么这么复杂?
-     * 翻译一下就是新设立的val如果跟原始的一样的话. 引用计数????????
-     * 这个涉及里面底层的实现, 也就是 valDup 和valDestructor 函数. 这2个函数底层可能有引用计数.
-     * 所以我们set之后要进行free来保持计数正确.         只用set函数没法保证计数正确!!!!!!!
-     * 
+     
      * */
     // 先保存原有的值的指针
-    auxentry = *entry;   //auxentry 类型是  dictEntry  //注意理解,这个地方是值赋值,所以auxentyr和entry的地址是不同的. auxentry的地址在上面已经确定了.
+    auxentry = *entry;   //auxentry 类型是  dictEntry  //注意理解,这个地方是值赋值,所以auxentyr和entry的地址是不同的. auxentry的地址在上面已经确定了. 
     // 然后设置新的值
     // T = O(1)
     dictSetVal(d, entry, val);
@@ -795,7 +792,7 @@ int dictReplace(dict *d, void *key, void *val)
 
 
 
-//下面这个替换算法, 遇到重复的就不操作了.
+//下面这个写的是替换,其实是添加操作
 /* dictReplaceRaw() is simply a version of dictAddRaw() that always
  * returns the hash entry of the specified key, even if the key already
  * exists and can't be added (in that case the entry of the already
@@ -855,7 +852,7 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
     if (d->ht[0].size == 0) return DICT_ERR; /* d->ht[0].table is NULL */
 
     // 进行单步 rehash ，T = O(1)
-    if (dictIsRehashing(d)) _dictRehashStep(d);        //每一步配合上rehash,就可以保证hash均匀.
+    if (dictIsRehashing(d)) _dictRehashStep(d);       
 
     // 计算哈希值
     h = dictHashKey(d, key);
@@ -884,7 +881,7 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
                     d->ht[table].table[idx] = he->next;
 
                 // 释放调用键和值的释放函数？
-                if (!nofree) {// 就是说key,value是否需要手动释放, 如果配置了相关函数就使用这个来释放.
+                if (!nofree) {
                     dictFreeKey(d, he);
                     dictFreeVal(d, he);
                 }
